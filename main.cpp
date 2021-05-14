@@ -58,15 +58,18 @@ int cast(sf::Vector3f ray, sf::Vector3f& from, sf::Vector3f sphere, double radiu
 
 void executingThread(sf::RenderWindow* window) {
 	while (window->isOpen()) {
+		sf::Vector3f oldcam = camera;
 		sf::Vector3f dot;
 		double light = 0;
-		for (int i = 0; i < winw; i++) for (int j = 0; j < winh; j++) {
-			dot = camera;
-			if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(0, 0, 0), 2.) >= 0)
-				light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(0, 0, 0), 2.)) * .5 + .5;
-			else light = 0;
-			setPixel(i, j, sf::Color(light*255, light*255, light*255), offscreen);
-		}
+		#pragma omp parallel for private(dot, light)
+		for (int i = 0; i < winw; i++)
+			for (int j = 0; j < winh; j++) {
+				dot = oldcam;
+				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(0, 0, 0), 2.) >= 0)
+					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(0, 0, 0), 2.)) * .5 + .5;
+				else light = 0;
+				setPixel(i, j, sf::Color(light * 255, light * 255, light * 255), offscreen);
+			}
 		sf::Uint8* tmp = offscreen;
 		offscreen = pixels;
 		pixels = tmp;
@@ -110,17 +113,16 @@ int main() {
 					break;
 				}*/
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) camera.z += .2;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) camera.z -= .2;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) camera.x -= .2;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) camera.x += .2;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) camera.y -= .2;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) camera.y += .2;
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) camera.z += .2;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) camera.z -= .2;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) camera.x -= .2;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) camera.x += .2;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) camera.y -= .2;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) camera.y += .2;
 		renderTexture.update(pixels);
 		window.draw(render);
 		window.display();
 		Sleep(5);
-		//std::cout << "rendered" << std::endl;
 	}
 }
