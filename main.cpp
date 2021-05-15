@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <omp.h>
 #include <iostream>
 #include <Windows.h>
 
@@ -29,6 +30,7 @@ inline sf::Vector3f normalize(sf::Vector3f a) {
 
 double mod(double a, double factor) {
 	while (a > factor) a -= factor;
+	while (a < 0) a += factor;
 	return a;
 }
 
@@ -45,11 +47,12 @@ inline double scalar(sf::Vector3f a, sf::Vector3f b) {
 }
 
 int cast(sf::Vector3f ray, sf::Vector3f& from, sf::Vector3f sphere, double radius) {
-	double step = 1e10;
+	double step = 0;
 	int ctr = 0;
 	while (ctr < max_iters) {
+		from.x = mod(from.x, 4);
 		step = distance(from, sphere, radius);
-		if (step <= epsilon) return true;
+		if (step <= epsilon) return ctr;
 		from += sf::Vector3f(ray.x*step, ray.y * step, ray.z * step);
 		ctr++;
 	}
@@ -61,12 +64,12 @@ void executingThread(sf::RenderWindow* window) {
 		sf::Vector3f oldcam = camera;
 		sf::Vector3f dot;
 		double light = 0;
-		#pragma omp parallel for private(dot, light)
+		//#pragma omp parallel for private(dot, light)
 		for (int i = 0; i < winw; i++)
 			for (int j = 0; j < winh; j++) {
 				dot = oldcam;
-				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(0, 0, 0), 2.) >= 0)
-					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(0, 0, 0), 2.)) * .5 + .5;
+				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(2, 0, 2), 2.) >= 0)
+					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(2, 0, 2), 2.)) * .5 + .5;
 				else light = 0;
 				setPixel(i, j, sf::Color(light * 255, light * 255, light * 255), offscreen);
 			}
@@ -92,26 +95,6 @@ int main() {
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) window.close();
 			if (event.type == sf::Event::KeyPressed) {
-				/*switch (event.key.code) {
-				case sf::Keyboard::Up:
-					camera.z += .2;
-					break;
-				case sf::Keyboard::Down:
-					camera.z -= .2;
-					break;
-				case sf::Keyboard::Left:
-					camera.x -= .2;
-					break;
-				case sf::Keyboard::Right:
-					camera.x += .2;
-					break;
-				case sf::Keyboard::LShift:
-					camera.y += .2;
-					break;
-				case sf::Keyboard::Space:
-					camera.y -= .2;
-					break;
-				}*/
 			}
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) camera.z += .2;
