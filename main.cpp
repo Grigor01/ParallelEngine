@@ -5,7 +5,7 @@
 
 const int winw = 800;
 const int winh = 600;
-const int max_iters = 10;
+const int max_iters = 30;
 const double epsilon = .01;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
@@ -50,7 +50,7 @@ int cast(sf::Vector3f ray, sf::Vector3f& from, sf::Vector3f sphere, double radiu
 	double step = 0;
 	int ctr = 0;
 	while (ctr < max_iters) {
-		from.x = mod(from.x, 4);
+		//from.x = mod(from.x, 4);
 		step = distance(from, sphere, radius);
 		if (step <= epsilon) return ctr;
 		from += sf::Vector3f(ray.x*step, ray.y * step, ray.z * step);
@@ -64,13 +64,14 @@ void executingThread(sf::RenderWindow* window) {
 		sf::Vector3f oldcam = camera;
 		sf::Vector3f dot;
 		double light = 0;
-		//#pragma omp parallel for private(dot, light)
+	//#pragma omp parallel for private(dot, light)
 		for (int i = 0; i < winw; i++)
 			for (int j = 0; j < winh; j++) {
 				dot = oldcam;
-				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(2, 0, 2), 2.) >= 0)
-					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(2, 0, 2), 2.)) * .5 + .5;
+				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(2, 2, 2), 2.) >= 0)
+					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(2, 2, 2), 2.));
 				else light = 0;
+				light = crop(light, 0, 1);
 				setPixel(i, j, sf::Color(light * 255, light * 255, light * 255), offscreen);
 			}
 		sf::Uint8* tmp = offscreen;
@@ -109,3 +110,17 @@ int main() {
 		Sleep(5);
 	}
 }
+
+
+/*
+1.Камера как два вектора
+Обработка кнопок
+Вынести это в отдельный файл
+2.Реализовать линейную алгебру для векторов и матриц
+Вынести в отдельный файл.
+
+3.Взаимодействие с обьектами (distance, normal). 
+Не только для сферы, но и для других.Сложение обьектов.
+4*.Оптимизация
+
+*/
