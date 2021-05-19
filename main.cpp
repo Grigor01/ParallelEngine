@@ -20,7 +20,7 @@ const double epsilon = .01;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 10, 0.01);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
@@ -73,8 +73,8 @@ int main() {
 	sf::Uint8* screensaver = offscreen;
 
 	objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
-	objs.push_back(Object(Type::CUBE, sf::Vector3f(-2., 0., 2.), 1.));
-	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), 1.));
+	//objs.push_back(Object(Type::CUBE, sf::Vector3f(1., 0., 2.), 1.));
+	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., 0., 0.), 1.));
 
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
@@ -84,7 +84,7 @@ int main() {
 			if (event.type == sf::Event::Closed) window.close();
 			if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Enter) {
-					std::cout << "Current camera x:" << camera.pos.x << " y:" << camera.pos.y << " z:" << camera.pos.z << " a:" << camera.alpha << " b:" << camera.beta << " g:" << camera.gamma << std::endl;
+					std::cout << "Current camera x:" << camera.pos.x << " y:" << camera.pos.y << " z:" << camera.pos.z << std::endl;
 				}
 			}
 		}

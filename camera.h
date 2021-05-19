@@ -12,9 +12,6 @@ class Camera {
 
 public:
 	int max_iters = 15;
-	double alpha = 0;
-	double beta = 0;
-	double gamma = 0;
 
 	sf::Vector3f pos = sf::Vector3f(0., 0., 0.);
 
@@ -23,9 +20,9 @@ public:
 	inline sf::Vector3f dir_tang() { return dt;	}
 	inline sf::Vector3f dir_vec() { return  dv; }
 
-	Camera(sf::Vector3f initpos, double a, double b, double c, int maxit, double eps) :pos(initpos), alpha(a), beta(b), gamma(c), max_iters(maxit), epsilon(eps) {
-		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
-		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
+	Camera(sf::Vector3f initpos, double a, double b, double c, int maxit, double eps) :pos(initpos), max_iters(maxit), epsilon(eps) {
+		dn = rotate(sf::Vector3f(0., 0., 1.), a, b, c);
+		dt = rotate(sf::Vector3f(1., 0., 0.), a, b, c);
 		dv = vecProd(dn, dt);
 	}
 
@@ -43,24 +40,21 @@ void Camera::update() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) pos -= dir_vec() * (float).05;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) pos += dir_vec() * (float).05;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-		gamma -= .01;
-		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
-		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
-		dv = vecProd(dn, dt);
+		dv = rotateVector(dv, dn, 0.01);
+		dt = rotateVector(dt, dn, 0.01);
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-		gamma += .01;
-		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
-		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
-		dv = vecProd(dn, dt);
+		dv = rotateVector(dv, dn, -0.01);
+		dt = rotateVector(dt, dn, -0.01);
 	}
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 		sf::Vector2i newmouse = sf::Mouse::getPosition();
-		alpha -= (double)(newmouse - mouse).x / 800 / 4;
-		beta += (double)(newmouse - mouse).y / 600 / 4;
-		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
-		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
-		dv = vecProd(dn, dt);
+		double alpha = -(double)(newmouse - mouse).x / 800 / 4;
+		double beta = -(double)(newmouse - mouse).y / 600 / 4;
+		dn = rotateVector(dn, dv, alpha);
+		dt = rotateVector(dt, dv, alpha);
+		dn = rotateVector(dn, dt, beta);
+		dv = rotateVector(dv, dt, beta);
 		mouse = newmouse;
 	}
 	else mouse = sf::Mouse::getPosition();
@@ -71,10 +65,10 @@ int Camera::cast(sf::Vector3f ray, sf::Vector3f& from, vector<Object>& objs, int
 	double step;
 	int ctr = 0;
 	while (ctr < max_iters) {
-		step = 1e10;
+		step = 0;
 		for (int i = 0; i < objs.size(); i++) {
 			double stepn = objs[i].distance(from);
-			if (stepn < step) {
+			if (stepn > step) {
 				step = stepn;
 				objnum = i;
 			}
