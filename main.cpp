@@ -15,6 +15,9 @@ const double camlight_coefficient = 0.1;
 
 //N.B. fog and lighting quality depends on maximum number of iterations
 
+const int max_iters = 30;
+const double epsilon = .01;
+
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
 Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
