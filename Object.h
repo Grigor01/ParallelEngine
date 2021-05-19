@@ -7,21 +7,36 @@ enum class Type {
 	CUBOID,
 	SPHERE,
 	PLANE,
+	COMBINED
+};
+
+enum class Comb {
+	ADD,
+	MULTIPLY,
+	SUBTRL,
+	SUBTRR,
+	NEGATIVE
 };
 
 //The class implements shapes such as cuboid, cube, and sphere.
 class Object {
 private:
 	Type shape;
+	Comb type = Comb::ADD;
 	sf::Vector3f position;
-	double length;
-	double width;
-	double height;
+	Object* left, *right = nullptr;
+
+	double length = 0;
+	double width = 0;
+	double height = 0;
+
 public:
 	Object(Type T, sf::Vector3f pos, double side, ...) {
 		shape = T;
 		position = pos;
 		double* a = &side;
+		left = nullptr;
+		right = nullptr;
 		switch (T) {
 		case Type::CUBOID:
 			length = *a;
@@ -31,7 +46,7 @@ public:
 			height = *a;
 			break;
 		case Type::PLANE:
-			length = 0;
+			length = *a;
 			width = 0;
 			height = 0;
 			break;
@@ -43,9 +58,46 @@ public:
 		}
 	}
 
+	Object(Type T, Comb t, Object* l, Object* r) {
+		shape = T;
+		if (shape != Type::COMBINED) throw runtime_error("object with two references should be combined");
+		type = t;
+		left = l;
+		if (type == Comb::NEGATIVE) throw runtime_error("extra right object for negative combination");
+		right = r;
+	}
+
+	Object(Type T, Comb t, Object* l) {
+		shape = T;
+		if (shape != Type::COMBINED) throw runtime_error("object with two references should be combined");
+		type = t;
+		left = l;
+		if (type != Comb::NEGATIVE) throw runtime_error("right object expected for non-negative combination");
+	}
+
 	//Calculates the distance from the observer to the shape.
 	double distance(sf::Vector3f dot) {
 		switch (shape) {
+		case Type::COMBINED: {
+			switch (type) {
+			case Comb::ADD:
+				return min(left->distance(dot), right->distance(dot));
+				break;
+			case Comb::MULTIPLY:
+				return max(left->distance(dot), right->distance(dot));
+				break;
+			case Comb::SUBTRL:
+				return max(-left->distance(dot), right->distance(dot));
+				break;
+			case Comb::SUBTRR:
+				return max(left->distance(dot), -right->distance(dot));
+				break;
+			case Comb::NEGATIVE:
+				return -left->distance(dot);
+				break;
+			}
+			break;
+		}
 		case Type::SPHERE: {
 			return sqrt((dot.x - position.x) * (dot.x - position.x) + (dot.y - position.y) * (dot.y - position.y) + (dot.z - position.z) * (dot.z - position.z)) - length;
 			break;
@@ -80,6 +132,43 @@ public:
 	//Unit normal to the shape.
 	sf::Vector3f normal(sf::Vector3f dot) {
 		switch (shape) {
+		case Type::COMBINED: {
+			switch (type) {
+			case Comb::ADD: {
+				double d1 = left->distance(dot);
+				double d2 = right->distance(dot);
+				if (d1 < d2) return left->normal(dot);
+				else return right->normal(dot);
+				break;
+			}
+			case Comb::MULTIPLY: {
+				double d1 = left->distance(dot);
+				double d2 = right->distance(dot);
+				if (d1 > d2) return left->normal(dot);
+				else return right->normal(dot);
+				break;
+			}
+			case Comb::SUBTRL: {
+				double d1 = -left->distance(dot);
+				double d2 = right->distance(dot);
+				if (d1 > d2) return -left->normal(dot);
+				else return right->normal(dot);
+				break;
+			}
+			case Comb::SUBTRR: {
+				double d1 = left->distance(dot);
+				double d2 = -right->distance(dot);
+				if (d1 > d2) return left->normal(dot);
+				else return -right->normal(dot);
+				break;
+			}
+			case Comb::NEGATIVE: {
+				return -left->normal(dot);
+				break;
+			}
+			}
+			break;
+		}
 		case Type::SPHERE: {
 			return normalize(position - dot);
 			break;
