@@ -8,7 +8,7 @@ const int winw = 800;
 const int winh = 600;
 
 // fog coefficient from 0 to 1, where 0 - no fog
-const double fog_coefficient = 0.1;
+const double fog_coefficient = 0.3;
 
 // camera lighting coefficient from 0 to 1, where 0 - no lighting
 const double camlight_coefficient = 0.1;
@@ -17,7 +17,7 @@ const double camlight_coefficient = 0.1;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(0., 0., 0.), 0, 0, 0, 15, 0.01);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {

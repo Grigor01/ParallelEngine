@@ -23,7 +23,11 @@ public:
 	inline sf::Vector3f dir_tang() { return dt;	}
 	inline sf::Vector3f dir_vec() { return  dv; }
 
-	Camera(sf::Vector3f initpos, double a, double b, double c, int maxit, double eps) :pos(initpos), alpha(a), beta(b), gamma(c), max_iters(maxit), epsilon(eps) {}
+	Camera(sf::Vector3f initpos, double a, double b, double c, int maxit, double eps) :pos(initpos), alpha(a), beta(b), gamma(c), max_iters(maxit), epsilon(eps) {
+		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
+		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
+		dv = vecProd(dn, dt);
+	}
 
 	void update();
 
@@ -38,6 +42,18 @@ void Camera::update() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) pos += dir_tang() * (float).05;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) pos -= dir_vec() * (float).05;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) pos += dir_vec() * (float).05;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+		gamma -= .01;
+		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
+		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
+		dv = vecProd(dn, dt);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+		gamma += .01;
+		dn = rotate(sf::Vector3f(0., 0., 1.), alpha, beta, gamma);
+		dt = rotate(sf::Vector3f(1., 0., 0.), alpha, beta, gamma);
+		dv = vecProd(dn, dt);
+	}
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 		sf::Vector2i newmouse = sf::Mouse::getPosition();
 		alpha -= (double)(newmouse - mouse).x / 800 / 4;
