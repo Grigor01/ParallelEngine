@@ -69,7 +69,8 @@ public:
 			break;
 		}
 		case Type::PLANE: {
-			return scalProd(sf::Vector3f(0., 1., 0.), dot - position);
+			if (dot.y>position.y) return scalProd(sf::Vector3f(0., 1., 0.), dot - position);
+			else return scalProd(sf::Vector3f(0., -1., 0.), dot - position);
 			break;
 		}
 		}
@@ -134,7 +135,8 @@ public:
 			break;
 		}
 		case Type::PLANE: {
-			return sf::Vector3f(0., 1., 0.);
+			if (dot.y > position.y) return sf::Vector3f(0., -1., 0.);
+			else return sf::Vector3f(0., 1., 0.);
 			break;
 		}
 		}
