@@ -37,6 +37,7 @@ Matrix composition(Matrix&, Matrix&);
 sf::Vector3f composition(sf::Vector3f&, Matrix&);
 sf::Vector3f composition(Matrix&, sf::Vector3f&);
 sf::Vector3f rotate(sf::Vector3f, double, double, double);
+sf::Vector3f rotateVector(sf::Vector3f vec, sf::Vector3f bas, double angle);
 
 // 3х3 matrix composition
 Matrix composition(Matrix& mat1, Matrix& mat2) {
@@ -116,4 +117,14 @@ double mod(double a, double factor) {
 
 double distance(sf::Vector3f vec1, sf::Vector3f vec2) {
 	return sqrt((vec1.x-vec2.x)*(vec1.x-vec2.x) + (vec1.y - vec2.y) * (vec1.y - vec2.y) + (vec1.z - vec2.z) * (vec1.z - vec2.z));
+}
+
+// rotation of vector around another vector
+sf::Vector3f rotateVector(sf::Vector3f vec, sf::Vector3f bas, double angle) {
+	double tmp = 1 - cos(angle);
+	Matrix mat(3); // https://www.cyberforum.ru/opengl/thread612111.html
+	mat[0] = sf::Vector3f((bas.x * bas.x * tmp + cos(angle)), (bas.y * bas.x * tmp - sin(angle) * bas.z), (bas.x * bas.z * tmp + sin(angle) * bas.y));
+	mat[1] = sf::Vector3f((bas.x * bas.y * tmp + sin(angle * bas.z)), (bas.y * bas.y * tmp + cos(angle)), (bas.z * bas.y * tmp - sin(angle) * bas.x));
+	mat[2] = sf::Vector3f((bas.x * bas.z * tmp - sin(angle) * bas.y), (bas.y * bas.z * tmp + sin(angle) * bas.x), (bas.z * bas.z * tmp + cos(angle)));
+	return composition(mat, vec);
 }
