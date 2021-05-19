@@ -15,9 +15,6 @@ const double camlight_coefficient = 0.1;
 
 //N.B. fog and lighting quality depends on maximum number of iterations
 
-const int max_iters = 30;
-const double epsilon = .01;
-
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
 Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
@@ -72,9 +69,10 @@ int main() {
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
 
-	objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
-	objs.push_back(Object(Type::CUBE, sf::Vector3f(-2., 0., 2.), 1.));
-	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), 1.));
+	objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., -2., 2.), sf::Vector3f(0., 0., 0.), 1.));
+	objs.push_back(Object(Type::CUBE, sf::Vector3f(-2., -2., 2.), sf::Vector3f(0., 0., 0.), 1.));
+	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -4., 0.), sf::Vector3f(0., 0., 0.), 1.));
+	objs.push_back(Object(Type::CUBOID, sf::Vector3f(1., 2., 1.), sf::Vector3f(0., 0., 0.), 3., 1., 1.));
 
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
