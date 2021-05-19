@@ -115,7 +115,7 @@ double mod(double a, double factor) {
 	return a;
 }
 
-double distance(sf::Vector3f vec1, sf::Vector3f vec2) {
+double dist(sf::Vector3f vec1, sf::Vector3f vec2) {
 	return sqrt((vec1.x-vec2.x)*(vec1.x-vec2.x) + (vec1.y - vec2.y) * (vec1.y - vec2.y) + (vec1.z - vec2.z) * (vec1.z - vec2.z));
 }
 
@@ -127,4 +127,14 @@ sf::Vector3f rotateVector(sf::Vector3f vec, sf::Vector3f bas, double angle) {
 	mat[1] = sf::Vector3f((bas.x * bas.y * tmp + sin(angle * bas.z)), (bas.y * bas.y * tmp + cos(angle)), (bas.z * bas.y * tmp - sin(angle) * bas.x));
 	mat[2] = sf::Vector3f((bas.x * bas.z * tmp - sin(angle) * bas.y), (bas.y * bas.z * tmp + sin(angle) * bas.x), (bas.z * bas.z * tmp + cos(angle)));
 	return composition(mat, vec);
+}
+
+// returns smoothified max(a,b)
+inline double smoothmax(double a, double b) {
+	return (a + b + sqrt((a - b)*(a - b) + .3)) * .5;
+}
+
+// returns smoothified min(a,b)
+inline double smoothmin(double a, double b) {
+	return -smoothmax(-a, -b);
 }
