@@ -89,7 +89,6 @@ int main() {
 	//Object sphere2(Type::SPHERE, sf::Vector3f(2.5, 2., 0.), sf::Color::Blue, 1);
 	//objs.push_back(Object(Type::COMBINED, Comb::SMOOTHADD, &sphere1, &sphere2));
 
-
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
 		sf::Event event;
