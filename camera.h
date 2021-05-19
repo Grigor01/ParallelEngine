@@ -20,13 +20,14 @@ public:
 		double alpha = 0;
 		double beta = 0;
 		double gamma = 0;
-		if (sf::Mouse::isButtonPressed(sf::Mouse::XButton1)) {
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 			sf::Vector2i newmouse = sf::Mouse::getPosition();
-			alpha = (newmouse - mouse).x / 800;
-			beta = (newmouse - mouse).y / 600;
+			alpha = (double)(newmouse - mouse).x / 800/4;
+			beta = (double)(newmouse - mouse).y / 600/4;
 			mouse = newmouse;
-			//dir_normal = rotate(dir_normal, alpha, beta, gamma);
-			//dir_tang = rotate(dir_tang, alpha, beta, gamma);
+			dir_normal = rotate(dir_normal, alpha, beta, gamma);
+			dir_tang = rotate(dir_tang, alpha, beta, gamma);
 		}
+		else mouse = sf::Mouse::getPosition();
 	}
 };

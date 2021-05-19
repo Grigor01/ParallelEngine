@@ -24,11 +24,6 @@ inline double crop(double a, double min, double max) {
 	return (a < min) ? min : (a > max) ? max : a;
 }
 
-inline sf::Vector3f normalize(sf::Vector3f a) {
-	double len = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-	return sf::Vector3f(a.x / len, a.y / len, a.z / len);
-}
-
 double mod(double a, double factor) {
 	while (a > factor) a -= factor;
 	while (a < 0) a += factor;
@@ -36,6 +31,13 @@ double mod(double a, double factor) {
 }
 
 inline double distance(sf::Vector3f dot, sf::Vector3f sphere, double radius) {
+	/*double x = abs(dot.x - sphere.x) - radius;
+	double y = abs(dot.y - sphere.y) - radius;
+	double z = abs(dot.z - sphere.z) - radius;
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+	if (z < 0) z = 0;
+	return sqrt(x * x + y * y + z * z);*/
 	return sqrt((dot.x - sphere.x) * (dot.x - sphere.x) + (dot.y - sphere.y) * (dot.y - sphere.y) + (dot.z - sphere.z) * (dot.z - sphere.z)) - radius;
 }
 
@@ -62,16 +64,19 @@ int cast(sf::Vector3f ray, sf::Vector3f& from, sf::Vector3f sphere, double radiu
 
 void executingThread(sf::RenderWindow* window) {
 	while (window->isOpen()) {
-		sf::Vector3f oldcam = camera.pos;
+		Camera oldcam = camera;
 		sf::Vector3f dot;
 		double light = 0;
 		//#pragma omp parallel for private(dot, light)
 		for (int i = 0; i < winw; i++)
 			for (int j = 0; j < winh; j++) {
-				dot = oldcam;
-
-				if (cast(normalize(sf::Vector3f((i - winw / 2.) / winw, (winh / 2. - j) / winw, 1)), dot, sf::Vector3f(2, 0, 2), 2.) >= 0)
-					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(2, 0, 2), 2.)) * .5 + .5;
+				dot = oldcam.pos;
+				double x = (i - winw / 2.) / winw;
+				double y = (winh / 2. - j) / winw;
+				double z = 1;
+				sf::Vector3f camd = normalize(oldcam.dir_normal + oldcam.dir_tang * (float)((i - winw / 2.) / winw) + oldcam.dir_vec() * (float)((winh / 2. - j) / winw));
+				if (cast(camd, dot, sf::Vector3f(2, 0, 2), 2) >= 0)
+					light = scalar(normalize(sf::Vector3f(5, -5, 5)), normal(dot, sf::Vector3f(2, 0, 2), 2)) * .5 + .5;
 				else light = 0;
 				setPixel(i, j, sf::Color(light * 255, light * 255, light * 255), offscreen);
 			}
