@@ -73,7 +73,7 @@ int main() {
 	sf::Uint8* screensaver = offscreen;
 
 	objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
-	//objs.push_back(Object(Type::CUBE, sf::Vector3f(1., 0., 2.), 1.));
+	objs.push_back(Object(Type::CUBE, sf::Vector3f(1., 0., 2.), 1.));
 	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., 0., 0.), 1.));
 
 	// cycle of updating camera and screen

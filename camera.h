@@ -65,10 +65,10 @@ int Camera::cast(sf::Vector3f ray, sf::Vector3f& from, vector<Object>& objs, int
 	double step;
 	int ctr = 0;
 	while (ctr < max_iters) {
-		step = 0;
+		step = 1e10;
 		for (int i = 0; i < objs.size(); i++) {
 			double stepn = objs[i].distance(from);
-			if (stepn > step) {
+			if (stepn < step) {
 				step = stepn;
 				objnum = i;
 			}
