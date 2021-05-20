@@ -35,5 +35,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="data.txt" />
+    <Text Include="data_undrawn.txt" />
   </ItemGroup>
 </Project>

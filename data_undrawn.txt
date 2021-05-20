@@ -1,0 +1,7 @@
+
+combined smoothadd
+  sphere  0.5 2. 0.  0. 0. 0.  255 0 0  1.
+  sphere  3 2. 0.  0. 0. 0.  0 0 255  1.
+  
+combined invert
+	sphere  0. 0. 0.  0. 0. 0.  0 255 0  20.

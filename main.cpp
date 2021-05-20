@@ -22,9 +22,9 @@ double shadow_coefficient = 0.5;
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
 Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 50, 0.01);
+sf::Vector3f lightvec = normalize(sf::Vector3f(4, -5, 3));
 vector<Object> objs;
 vector<Object> buf;
-sf::Vector3f lightvec = normalize(sf::Vector3f(4, -5, 3));
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
 	buffer[(y * winw + x)*4] = c.r;
@@ -80,40 +80,13 @@ int main() {
 	sf::Sprite render;
 	render.setTexture(renderTexture);
 
+	buf.reserve(100);
+	readFromFile("data.txt", camera, objs, buf, fog_coefficient, camlight_coefficient, shadow_coefficient, lightvec);
 	// thread for rendering scenery
 	sf::Thread thread(&executingThread, &window);
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
 	int framecount = 0;
-	//readFromFile("data.txt", camera, objs, buf, fog_coefficient, camlight_coefficient, shadow_coefficient, lightvec);
-	
-	//Object boundary(Type::SPHERE, sf::Vector3f(0., 0., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Green, 20.);
-	//objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &boundary));
-	//objs.push_back(Object(Type::SPHERE, sf::Vector3f(1., 0., 2.), sf::Vector3f(0.,0.,0.), sf::Color(100, 0, 200), 1.));
-	//objs.push_back(Object(Type::CUBE, sf::Vector3f(-1., 0., 2.), sf::Vector3f(0., 0., 0.), sf::Color(0, 255, 200), 1.));
-	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), sf::Vector3f(0., 0., 0.), sf::Color::White, 1.));
-
-	Object cube(Type::CUBE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Red, 1);
-	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Blue, 1.3);
-	objs.push_back(Object(Type::COMBINED, Comb::SUBTRR, &cube, &sphere));
-	
-	/*combined
-smoothadd
-sphere
-0.5 2. 0.
-0. 0. 0.
-255 0 0
-1.
-sphere
-2.5 2. 0.
-0. 0. 0.
-0 0 255
-1.
-*/
-	Object sphere1(Type::SPHERE, sf::Vector3f(0.5, 2., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Red, 1);
-	Object sphere2(Type::SPHERE, sf::Vector3f(2.5, 2., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Blue, 1);
-	objs.push_back(Object(Type::COMBINED, Comb::SMOOTHADD, &sphere1, &sphere2));
-
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
 		sf::Event event;
