@@ -35,7 +35,7 @@ private:
 
 public:
 	// constructors for others / combined / negative
-	Object(Type T, sf::Vector3f pos, sf::Color col_, double side, ...) {
+	Object(Type T, sf::Vector3f pos, sf::Vector3f rote, sf::Color col_, double side, ...) {
 		shape = T;
 		col = col_;
 		position = pos;
@@ -193,11 +193,10 @@ double Object::distance(sf::Vector3f dot) {
 			bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
 			if (rotation) {
 				sf::Vector3f rote = rotate(dot - position, angles.x, angles.y, angles.z);
-				return scalProd(sf::Vector3f(0., 1., 0.), rote);
+				return abs(scalProd(sf::Vector3f(0., 1., 0.), rote));
 			}
-			return scalProd(sf::Vector3f(0., 1., 0.), dot - position);
+			return abs(scalProd(sf::Vector3f(0., 1., 0.), dot - position));
       break;
-    }
     }
 	}
 	return 0;
@@ -317,8 +316,8 @@ sf::Vector3f Object::normal(sf::Vector3f dot) {
   }
   case Type::PLANE: {
     bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-    if (rotation) return rotate(sf::Vector3f(0., 1., 0.), angles.x, angles.y, angles.z);
-    return sf::Vector3f(0., 1., 0.);
+    if (rotation) return rotate(sf::Vector3f(0., -1., 0.), angles.x, angles.y, angles.z);
+    return sf::Vector3f(0., -1., 0.);
     break;
   }
   }
