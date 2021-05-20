@@ -8,19 +8,19 @@ const int winw = 800;
 const int winh = 600;
 
 // fog coefficient from 0 to 1, where 0 - no fog
-const double fog_coefficient = 0.;
+const double fog_coefficient = 0.4;
 
 // camera lighting coefficient from 0 to 1, where 0 - no lighting
-const double camlight_coefficient = 0.1;
+const double camlight_coefficient = 0.3;
 
 //N.B. fog and lighting quality depends on maximum number of iterations
 
-const int max_iters = 30;
-const double epsilon = .01;
+//const int max_iters = 30;
+//const double epsilon = .01;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 50, 0.001);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
@@ -61,7 +61,6 @@ int main() {
 	sf::RenderWindow window(sf::VideoMode(winw, winh), "RayMarching");
 	sf::Texture renderTexture;
 	renderTexture.create(winw, winh);
-	renderTexture.setRepeated(false);
 	for (int i = 0; i < winw; i++) for (int j = 0; j < winh; j++) setPixel(i, j, sf::Color::Black, pixels);
 	for (int i = 0; i < winw; i++) for (int j = 0; j < winh; j++) setPixel(i, j, sf::Color::Black, offscreen);
 	sf::Sprite render;
@@ -72,12 +71,14 @@ int main() {
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
 
-	objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
+	//objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
 	//objs.push_back(Object(Type::CUBE, sf::Vector3f(-2., 0., 2.), 1.));
-	//objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), 1.));
-	Object cube(Type::CUBE, sf::Vector3f(0., 0., 0.), 20);
-	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 0.), 20);
-	objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &sphere));
+	//objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -1., 0.), 1.));
+	Object plane(Type::PLANE, sf::Vector3f(0., -1., 0.), 1.);
+	Object cube(Type::CUBE, sf::Vector3f(0., 0., 0.), 2);
+	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 0.), 2.5);
+	Object comb(Type::COMBINED, Comb::SUBTRR, &cube, &sphere);
+	objs.push_back(Object(Type::COMBINED, Comb::MULTIPLY, &comb, &plane));
 
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
