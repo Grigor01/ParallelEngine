@@ -169,11 +169,10 @@ double Object::distance(sf::Vector3f dot) {
 			if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
 			else rote = dot - position;
 			sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - length, abs(rote.z) - length);
-			bool revert = ((dist.x < 0) && (dist.y < 0) && (dist.z < 0));
+			if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
+				return -sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
 			dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
-			double d = sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			if (revert) return -d;
-			return d;
+			return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
 			break;
 		}
 		case Type::CUBOID: {
@@ -182,11 +181,10 @@ double Object::distance(sf::Vector3f dot) {
 			if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
 			else rote = dot - position;
 			sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - height, abs(rote.z) - width);
-			bool revert = ((dist.x < 0) && (dist.y < 0) && (dist.z < 0));
+			if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
+				return -sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
 			dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
-			double d = sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			if (revert) return -d;
-			return d;
+			return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
 			break;
 		}
 		case Type::PLANE: {

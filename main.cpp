@@ -20,7 +20,7 @@ const double shadow_coefficient = 0.5;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 50, 0.01);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
@@ -83,7 +83,7 @@ int main() {
 	sf::Uint8* screensaver = offscreen;
 	int framecount = 0;
 
-	Object boundary(Type::SPHERE, sf::Vector3f(0., 0., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Green, 20.);
+	Object boundary(Type::SPHERE, sf::Vector3f(0., 0., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Green, 30.);
 	//objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &boundary));
 	objs.push_back(Object(Type::SPHERE, sf::Vector3f(1., 0., 2.), sf::Vector3f(0.,0.,0.), sf::Color(100, 0, 200), 1.));
 	objs.push_back(Object(Type::CUBE, sf::Vector3f(-1., 0., 2.), sf::Vector3f(0., 0., 0.), sf::Color(0, 255, 200), 1.));
