@@ -63,10 +63,11 @@ void Camera::update() {
 // cast a ray with normalized direction in ray and scenery in objs, returns number of calculated iterations and collided object num in objnum 
 int Camera::cast(sf::Vector3f ray, sf::Vector3f& from, vector<Object>& objs, int& objnum) {
 	double step;
+	int except = objnum;
 	int ctr = 0;
 	while (ctr < max_iters) {
 		step = 1e10;
-		for (int i = 0; i < objs.size(); i++) {
+		for (int i = 0; i < objs.size(); i++) if (i != except) {
 			double stepn = objs[i].distance(from);
 			if (stepn < step) {
 				step = stepn;

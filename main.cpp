@@ -8,19 +8,19 @@ const int winw = 800;
 const int winh = 600;
 
 // fog coefficient from 0 to 1, where 0 - no fog
-const double fog_coefficient = 0.4;
+const double fog_coefficient = 0.5;
 
 // camera lighting coefficient from 0 to 1, where 0 - no lighting
-const double camlight_coefficient = 0.3;
+const double camlight_coefficient = 0.5;
+
+// ambient lighting coefficient from 0 to 1, where 1 - no shadows
+const double shadow_coefficient = 0.5;
 
 //N.B. fog and lighting quality depends on maximum number of iterations
 
-//const int max_iters = 30;
-//const double epsilon = .01;
-
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 50, 0.001);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
@@ -40,13 +40,23 @@ void executingThread(sf::RenderWindow* window) {
 			for (int j = 0; j < winh; j++) {
 				dot = oldcam.pos;
 				sf::Vector3f camd = normalize(oldcam.dir_normal() + oldcam.dir_tang() * (float)((i - winw / 2.) / winw) + oldcam.dir_vec() * (float)((winh / 2. - j) / winw));
-				int n;
+				int n = -1;
 				int camlight;
-				if ((camlight = camera.cast(camd, dot, objs, n)) >= 0)
+				if ((camlight = camera.cast(camd, dot, objs, n)) >= 0) {
 					light = scalProd(normalize(sf::Vector3f(4, -5, 3)), objs[n].normal(dot)) * (.5 * (1. - (double)camlight_coefficient) + camlight_coefficient * (double)camlight / camera.max_iters) + .5;
-				else light = (100. * fog_coefficient - distance(oldcam.pos, dot)) / 100.;
+					if (shadow_coefficient < 1) {
+						int k = n;
+						if (camera.cast(-normalize(sf::Vector3f(4, -5, 3)), dot, objs, k) > -1) light *= shadow_coefficient;
+					}
+				}
+				else {
+					light = (100. * fog_coefficient - dist(oldcam.pos, dot)) / 100.;
+					n = -1;
+				}
 				light = crop(light, 0., 1.);
-				setPixel(i, j, sf::Color((int)(light * 255), (int)(light * 255), (int)(light * 255)), offscreen);
+				sf::Color col = sf::Color::White;
+				if (n > -1) col = objs[n].color(dot);
+				setPixel(i, j, sf::Color((int)(light * col.r), (int)(light * col.g), (int)(light * col.b)), offscreen);
 			}
 		// rendering is conducted on offscreen, drawing from pixels, when rendered they get swapped
 		sf::Uint8* tmp = offscreen;
@@ -61,6 +71,7 @@ int main() {
 	sf::RenderWindow window(sf::VideoMode(winw, winh), "RayMarching");
 	sf::Texture renderTexture;
 	renderTexture.create(winw, winh);
+	renderTexture.setRepeated(false);
 	for (int i = 0; i < winw; i++) for (int j = 0; j < winh; j++) setPixel(i, j, sf::Color::Black, pixels);
 	for (int i = 0; i < winw; i++) for (int j = 0; j < winh; j++) setPixel(i, j, sf::Color::Black, offscreen);
 	sf::Sprite render;
@@ -70,15 +81,21 @@ int main() {
 	sf::Thread thread(&executingThread, &window);
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
+	int framecount = 0;
 
-	//objs.push_back(Object(Type::SPHERE, sf::Vector3f(2., 0., 2.), 1.));
-	//objs.push_back(Object(Type::CUBE, sf::Vector3f(-2., 0., 2.), 1.));
-	//objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -1., 0.), 1.));
-	Object plane(Type::PLANE, sf::Vector3f(0., -1., 0.), 1.);
-	Object cube(Type::CUBE, sf::Vector3f(0., 0., 0.), 2);
-	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 0.), 2.5);
-	Object comb(Type::COMBINED, Comb::SUBTRR, &cube, &sphere);
-	objs.push_back(Object(Type::COMBINED, Comb::MULTIPLY, &comb, &plane));
+	Object boundary(Type::SPHERE, sf::Vector3f(0., 0., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Green, 20.);
+	//objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &boundary));
+	objs.push_back(Object(Type::SPHERE, sf::Vector3f(1., 0., 2.), sf::Vector3f(0.,0.,0.), sf::Color(100, 0, 200), 1.));
+	objs.push_back(Object(Type::CUBE, sf::Vector3f(-1., 0., 2.), sf::Vector3f(0., 0., 0.), sf::Color(0, 255, 200), 1.));
+	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), sf::Vector3f(0., 0., 0.), sf::Color::White, 1.));
+
+	Object cube(Type::CUBE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Red, 1);
+	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Blue, 1.3);
+	objs.push_back(Object(Type::COMBINED, Comb::SUBTRR, &cube, &sphere));
+
+	//Object sphere1(Type::CUBE, sf::Vector3f(0., 2., 0.), sf::Color::Red, 1);
+	//Object sphere2(Type::SPHERE, sf::Vector3f(2.5, 2., 0.), sf::Color::Blue, 1);
+	//objs.push_back(Object(Type::COMBINED, Comb::SMOOTHADD, &sphere1, &sphere2));
 
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
@@ -96,7 +113,10 @@ int main() {
 		if (screensaver != pixels) {
 			renderTexture.update(pixels);
 			screensaver = pixels;
+			std::cout << framecount*10 << "ms/frame" << std::endl;
+			framecount = 0;
 		}
+		else framecount++;
 		window.draw(render);
 		window.display();
 		Sleep(10);
