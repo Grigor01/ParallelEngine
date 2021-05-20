@@ -20,7 +20,7 @@ const double shadow_coefficient = 0.5;
 
 sf::Uint8* pixels = new sf::Uint8[winw * winh * 4];
 sf::Uint8* offscreen = new sf::Uint8[winw * winh * 4];
-Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 50, 0.01);
+Camera camera(sf::Vector3f(3.7, 5.5, -9.), 0.625, -0.5, -0.75, 15, 0.01);
 vector<Object> objs;
 
 inline void setPixel(int x, int y, sf::Color c, sf::Uint8* buffer) {
@@ -54,8 +54,8 @@ void executingThread(sf::RenderWindow* window) {
 					n = -1;
 				}
 				light = crop(light, 0., 1.);
-				sf::Color col = objs[n].color(dot);
-				if (n == -1) col = sf::Color::White;
+				sf::Color col = sf::Color::White;
+				if (n > -1) col = objs[n].color(dot);
 				setPixel(i, j, sf::Color((int)(light * col.r), (int)(light * col.g), (int)(light * col.b)), offscreen);
 			}
 		// rendering is conducted on offscreen, drawing from pixels, when rendered they get swapped
@@ -84,10 +84,11 @@ int main() {
 	int framecount = 0;
 
 	Object boundary(Type::SPHERE, sf::Vector3f(0., 0., 0.), sf::Vector3f(0., 0., 0.), sf::Color::Green, 20.);
-	objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &boundary));
+	//objs.push_back(Object(Type::COMBINED, Comb::NEGATIVE, &boundary));
 	objs.push_back(Object(Type::SPHERE, sf::Vector3f(1., 0., 2.), sf::Vector3f(0.,0.,0.), sf::Color(100, 0, 200), 1.));
 	objs.push_back(Object(Type::CUBE, sf::Vector3f(-1., 0., 2.), sf::Vector3f(0., 0., 0.), sf::Color(0, 255, 200), 1.));
 	objs.push_back(Object(Type::PLANE, sf::Vector3f(0., -2., 0.), sf::Vector3f(0., 0., 0.), sf::Color::White, 1.));
+
 	Object cube(Type::CUBE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Red, 1);
 	Object sphere(Type::SPHERE, sf::Vector3f(0., 0., 6.), sf::Vector3f(0., 0., 0.), sf::Color::Blue, 1.3);
 	objs.push_back(Object(Type::COMBINED, Comb::SUBTRR, &cube, &sphere));
