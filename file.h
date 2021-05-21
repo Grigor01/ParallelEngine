@@ -34,6 +34,7 @@ Object getline(fstream& fin, vector<Object>& buff) {
 
 		fin >> pos.x >> pos.y >> pos.z;
 		fin >> angle.x >> angle.y >> angle.z;
+		angle *= (float)(3.141592 / 180.);
 		fin >> r >> g >> b;
 		
 		if (str == "sphere") {
@@ -43,6 +44,10 @@ Object getline(fstream& fin, vector<Object>& buff) {
 		if (str == "cube") {
 			fin >> length;
 			return Object(Type::CUBE, pos, angle, sf::Color(r, g, b), length);
+		}
+		if (str == "sponge") {
+			fin >> length;
+			return Object(Type::SPONGE, pos, angle, sf::Color(r, g, b), length);
 		}
 		if (str == "plane") {
 			fin >> length;

@@ -3,5 +3,10 @@ combined smoothadd
   sphere  0.5 2. 0.  0. 0. 0.  255 0 0  1.
   sphere  3 2. 0.  0. 0. 0.  0 0 255  1.
   
+	
+combined subright
+	cube -1. 2. 3.  0. 0. 0.  255 255 255 2.
+	cube 1. 2. 3.  0. 0 0  255 255 255 1.
 combined invert
-	sphere  0. 0. 0.  0. 0. 0.  0 255 0  20.
+	sphere 0. 0. 0.  0. 0. 0.  0 255 0  20
+cuboid 0. 0. 0.  0. 0. 0.  255 0 255  1 1 2

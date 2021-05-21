@@ -87,6 +87,7 @@ int main() {
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
 	int framecount = 0;
+	bool fps = false;
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
 		sf::Event event;
@@ -97,13 +98,14 @@ int main() {
 				if (event.key.code == sf::Keyboard::Enter) {
 					std::cout << "Current camera x:" << camera.pos.x << " y:" << camera.pos.y << " z:" << camera.pos.z << std::endl;
 				}
+				if (event.key.code == sf::Keyboard::Tab) fps = !fps;
 			}
 		}
 		camera.update();
 		if (screensaver != pixels) {
 			renderTexture.update(pixels);
 			screensaver = pixels;
-			std::cout << framecount*10 << "ms/frame" << std::endl;
+			if (fps) std::cout << framecount*10 << "ms/frame" << std::endl;
 			framecount = 0;
 		}
 		else framecount++;

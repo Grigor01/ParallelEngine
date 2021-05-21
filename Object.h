@@ -7,6 +7,7 @@ enum class Type {
 	CUBOID,
 	SPHERE,
 	PLANE,
+	SPONGE,
 	COMBINED
 };
 
@@ -108,10 +109,22 @@ sf::Color Object::color(sf::Vector3f dot) {
 			return sf::Color(left->color(dot).r * d1 + right->color(dot).r * d2, left->color(dot).g * d1 + right->color(dot).g * d2, left->color(dot).b * d1 + right->color(dot).b * d2);
 			break;
 		}
-		case Comb::MULTIPLY:
-		case Comb::SUBTRL:
+		case Comb::MULTIPLY: {
+			double d1 = left->distance(dot);
+			double d2 = right->distance(dot);
+			if (d1 > d2) return left->color(dot);
+			else return right->color(dot);
+			break;
+		}
 		case Comb::SUBTRR: {
 			double d1 = left->distance(dot);
+			double d2 = -right->distance(dot);
+			if (d1 > d2) return left->color(dot);
+			else return right->color(dot);
+			break;
+		}
+		case Comb::SUBTRL: {
+			double d1 = -left->distance(dot);
 			double d2 = right->distance(dot);
 			if (d1 > d2) return left->color(dot);
 			else return right->color(dot);
@@ -130,6 +143,7 @@ sf::Color Object::color(sf::Vector3f dot) {
 
 //Calculates the distance from the observer to the shape.
 double Object::distance(sf::Vector3f dot) {
+	bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
 	switch (shape) {
 	case Type::COMBINED: {
 		switch (type) {
@@ -154,47 +168,52 @@ double Object::distance(sf::Vector3f dot) {
 		}
 		break;
 	}
-		case Type::SPHERE: {
-			bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-			if (rotation) {
-				sf::Vector3f rote = rotate(dot - position, angles.x, angles.y, angles.z);
-				return sqrt(rote.x * rote.x + rote.y * rote.y + rote.z * rote.z);
-			}
-			return sqrt((dot.x - position.x) * (dot.x - position.x) + (dot.y - position.y) * (dot.y - position.y) + (dot.z - position.z) * (dot.z - position.z)) - length;
-			break;
+	case Type::SPONGE: {
+		if (dist(dot, position) > length*3) return dist(dot, position);
+		double d1 = min(distance(position+(dot-position)*(float)3. + sf::Vector3f(length*2./3., length * 2. / 3., length * 2. / 3.))/3., distance(position + (dot - position) * (float)3. - sf::Vector3f(length * 2. / 3., length * 2. / 3., length * 2. / 3.))/3.);
+		double d2 = min(distance(position + (dot - position) * (float)3. + sf::Vector3f(-length * 2. / 3., length * 2. / 3., length * 2. / 3.)) / 3., distance(position + (dot - position) * (float)3. - sf::Vector3f(-length * 2. / 3., length * 2. / 3., length * 2. / 3.)) / 3.);
+		double d3 = min(distance(position + (dot - position) * (float)3. + sf::Vector3f(-length * 2. / 3., -length * 2. / 3., length * 2. / 3.)) / 3., distance(position + (dot - position) * (float)3. - sf::Vector3f(-length * 2. / 3., -length * 2. / 3., length * 2. / 3.)) / 3.);
+		double d4 = min(distance(position + (dot - position) * (float)3. + sf::Vector3f(-length * 2. / 3., length * 2. / 3., -length * 2. / 3.)) / 3., distance(position + (dot - position) * (float)3. - sf::Vector3f(-length * 2. / 3., length * 2. / 3., -length * 2. / 3.)) / 3.);
+		return min(min(d1, d2), min(d3, d4));
+		break;
+	}
+	case Type::SPHERE: {
+		if (rotation) {
+			sf::Vector3f rote = rotate(dot - position, angles.x, angles.y, angles.z);
+			return sqrt(rote.x * rote.x + rote.y * rote.y + rote.z * rote.z);
 		}
-		case Type::CUBE: {
-			bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-			sf::Vector3f rote;
-			if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
-			else rote = dot - position;
-			sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - length, abs(rote.z) - length);
-			if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
-				return -sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
-			return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			break;
+		return sqrt((dot.x - position.x) * (dot.x - position.x) + (dot.y - position.y) * (dot.y - position.y) + (dot.z - position.z) * (dot.z - position.z)) - length;
+		break;
+	}
+	case Type::CUBE: {
+		sf::Vector3f rote;
+		if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
+		else rote = dot - position;
+		sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - length, abs(rote.z) - length);
+		if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
+			return max(dist.x, max(dist.y, dist.z));
+		dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
+		return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+		break;
+	}
+	case Type::CUBOID: {
+		sf::Vector3f rote;
+		if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
+		else rote = dot - position;
+		sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - height, abs(rote.z) - width);
+		if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
+			return max(dist.x, max(dist.y, dist.z));
+		dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
+		return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+		break;
+	}
+	case Type::PLANE: {
+		if (rotation) {
+			sf::Vector3f rote = rotate(dot - position, angles.x, angles.y, angles.z);
+			return abs(scalProd(sf::Vector3f(0., 1., 0.), rote));
 		}
-		case Type::CUBOID: {
-			bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-			sf::Vector3f rote;
-			if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
-			else rote = dot - position;
-			sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - height, abs(rote.z) - width);
-			if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0))
-				return -sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			dist = sf::Vector3f(max(dist.x, (float)0.), max(dist.y, (float)0.), max(dist.z, (float)0.));
-			return sqrt(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-			break;
-		}
-		case Type::PLANE: {
-			bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-			if (rotation) {
-				sf::Vector3f rote = rotate(dot - position, angles.x, angles.y, angles.z);
-				return abs(scalProd(sf::Vector3f(0., 1., 0.), rote));
-			}
-			return abs(scalProd(sf::Vector3f(0., 1., 0.), dot - position));
-      break;
+		return abs(scalProd(sf::Vector3f(0., 1., 0.), dot - position));
+		break;
     }
 	}
 	return 0;
@@ -202,6 +221,7 @@ double Object::distance(sf::Vector3f dot) {
 
 //Unit normal to the shape.
 sf::Vector3f Object::normal(sf::Vector3f dot) {
+	bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
 	switch (shape) {
 	case Type::COMBINED: {
 		switch (type) {
@@ -248,77 +268,65 @@ sf::Vector3f Object::normal(sf::Vector3f dot) {
 		}
 		break;
 	}
-  case Type::SPHERE: {
-    bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-    if (rotation) return normalize(rotate(position - dot, angles.x, angles.y, angles.z));
-    return normalize(position - dot);
-    break;
-  }
-  case Type::CUBE: {
-    bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-    sf::Vector3f rote;
-    if (rotation) rote = rotate(position - dot, angles.x, angles.y, angles.z);
-    else rote = dot - position;
-    sf::Vector3f dist(abs(abs(rote.x) - length), abs(abs(rote.y) - length), abs(abs(rote.z) - length));
-    if ((dist.x < dist.y) && (dist.x < dist.z)) {
-      dist.x = 1;
-      dist.y = 0;
-      dist.z = 0;
-      if (rote.x > 0) dist.x *= (-1);
-      return dist;
-    }
-    else if (dist.y < dist.z) {
-      dist.x = 0;
-      dist.y = 1;
-      dist.z = 0;
-      if (rote.y > 0) dist.y *= (-1);
-      return dist;
-    }
-    else {
-      dist.x = 0;
-      dist.y = 0;
-      dist.z = 1;
-      if (rote.z > 0) dist.z *= (-1);
-      return dist;
-    }
-    break;
-  }
-  case Type::CUBOID: {
-    bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-    sf::Vector3f rote;
-    if (rotation) rote = rotate(position - dot, angles.x, angles.y, angles.z);
-    else rote = position - dot;
-    sf::Vector3f dist(abs(abs(rote.x) - length), abs(abs(rote.y) - height), abs(abs(rote.z) - width));
-    if ((dist.x < dist.y) && (dist.x < dist.z)) {
-      dist.x = 1;
-      dist.y = 0;
-      dist.z = 0;
-      if (rote.x < 0) dist.x *= (-1);
-      return dist;
-    }
-    else if (dist.y < dist.z) {
-      dist.x = 0;
-      dist.y = 1;
-      dist.z = 0;
-      if (rote.y < 0) dist.y *= (-1);
-      return dist;
-    }
-    else {
-      dist.x = 0;
-      dist.y = 0;
-      dist.z = 1;
-      if (rote.z < 0) dist.z *= (-1);
-      return dist;
-    }
-    break;
-  }
-  case Type::PLANE: {
-    bool rotation = ((angles.x != 0) || (angles.y != 0) || (angles.z != 0));
-    if (rotation) return rotate(sf::Vector3f(0., -1., 0.), angles.x, angles.y, angles.z);
-    return sf::Vector3f(0., -1., 0.);
-    break;
-  }
-  }
+	case Type::SPHERE: {
+		if (rotation) return normalize(rotate(position - dot, angles.x, angles.y, angles.z));
+		return normalize(position - dot);
+		break;
+	}
+	case Type::CUBE: {
+		sf::Vector3f rote;
+		if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
+		else rote = dot - position;
+		sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - length, abs(rote.z) - length);
+		if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0)) {
+			if ((dist.x > dist.y) && (dist.x > dist.z)) {
+				dist.y = 0;
+				dist.z = 0;
+			}
+			else if (dist.y > dist.z) {
+				dist.x = 0;
+				dist.z = 0;
+			}
+			else {
+				dist.x = 0;
+				dist.y = 0;
+			}
+			return -normalize(dist);
+		}
+		dist = sf::Vector3f(max(dist.x, (float)0.) * sign(rote.x), max(dist.y, (float)0.) * sign(rote.y), max(dist.z, (float)0.) * sign(rote.z));
+		return -normalize(dist);
+		break;
+	}
+	case Type::CUBOID: {
+		sf::Vector3f rote;
+		if (rotation) rote = rotate(dot - position, angles.x, angles.y, angles.z);
+		else rote = dot - position;
+		sf::Vector3f dist(abs(rote.x) - length, abs(rote.y) - height, abs(rote.z) - width);
+		if ((dist.x < 0) && (dist.y < 0) && (dist.z < 0)) {
+			if ((dist.x > dist.y) && (dist.x > dist.z)) {
+				dist.y = 0;
+				dist.z = 0;
+			}
+			else if (dist.y > dist.z) {
+				dist.x = 0;
+				dist.z = 0;
+			}
+			else {
+				dist.x = 0;
+				dist.y = 0;
+			}
+			return -normalize(dist);
+		}
+		dist = sf::Vector3f(max(dist.x, (float)0.) * sign(rote.x), max(dist.y, (float)0.) * sign(rote.y), max(dist.z, (float)0.) * sign(rote.z));
+		return -normalize(dist);
+		break;
+	}
+	case Type::PLANE: {
+		if (rotation) return rotate(sf::Vector3f(0., -1., 0.), -angles.x, -angles.y, -angles.z);
+		return sf::Vector3f(0., -1., 0.);
+		break;
+	}
+	}
 	return sf::Vector3f();
 }
 /*

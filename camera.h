@@ -49,8 +49,8 @@ void Camera::update() {
 	}
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 		sf::Vector2i newmouse = sf::Mouse::getPosition();
-		double alpha = -(double)(newmouse - mouse).x / 800 / 4;
-		double beta = -(double)(newmouse - mouse).y / 600 / 4;
+		double alpha = -(double)(newmouse - mouse).x / 800 / 2;
+		double beta = -(double)(newmouse - mouse).y / 600 / 2;
 		dn = rotateVector(dn, dv, alpha);
 		dt = rotateVector(dt, dv, alpha);
 		dn = rotateVector(dn, dt, beta);
