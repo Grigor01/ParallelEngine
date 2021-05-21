@@ -19,7 +19,7 @@ Object getline(fstream& fin, vector<Object>& buff) {
 		if (str == "invert")
 			return Object(Type::COMBINED, Comb::NEGATIVE, &(buff[c1]));
 		if (str == "multiply")
-			return Object(Type::COMBINED, Comb::MULTIPLY, &(buff[c1]));
+			return Object(Type::COMBINED, Comb::MULTIPLY, &(buff[c1]), &(buff[c2]));
 		if (str == "smoothadd")
 			return Object(Type::COMBINED, Comb::SMOOTHADD, &(buff[c1]), &(buff[c2]));
 		if (str == "subleft")
