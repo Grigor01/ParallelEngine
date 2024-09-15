@@ -138,3 +138,8 @@ inline double smoothmax(double a, double b) {
 inline double smoothmin(double a, double b) {
 	return -smoothmax(-a, -b);
 }
+
+inline int sign(double a) {
+	if (a < 0) return -1;
+	return 1;
+}

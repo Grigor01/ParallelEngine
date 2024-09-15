@@ -38,7 +38,7 @@ void executingThread(sf::RenderWindow* window) {
 		Camera oldcam = camera;
 		sf::Vector3f dot;
 		double light = 0;
-		#pragma omp parallel for private(dot, light)
+		#pragma omp parallel for private(dot, light) schedule(guided)
 		for (int i = 0; i < winw; i++)
 			for (int j = 0; j < winh; j++) {
 				dot = oldcam.pos;
@@ -46,7 +46,7 @@ void executingThread(sf::RenderWindow* window) {
 				int n = -1;
 				int camlight;
 				if ((camlight = camera.cast(camd, dot, objs, n)) >= 0) {
-					light = scalProd(lightvec, objs[n].normal(dot)) * (.5 * (1. - (double)camlight_coefficient) + camlight_coefficient * (double)camlight / camera.max_iters) + .5;
+					light = scalProd(lightvec, objs[n].normal(dot)) * (.5 * (1. - (double)camlight_coefficient) + camlight_coefficient * (1-(double)camlight / camera.max_iters)) + .5;
 					if (shadow_coefficient < 1) {
 						int k = n;
 						if (camera.cast(-lightvec, dot, objs, k) > -1) light *= shadow_coefficient;
@@ -87,6 +87,7 @@ int main() {
 	thread.launch();
 	sf::Uint8* screensaver = offscreen;
 	int framecount = 0;
+	bool fps = false;
 	// cycle of updating camera and screen
 	while (window.isOpen()) {
 		sf::Event event;
@@ -97,13 +98,14 @@ int main() {
 				if (event.key.code == sf::Keyboard::Enter) {
 					std::cout << "Current camera x:" << camera.pos.x << " y:" << camera.pos.y << " z:" << camera.pos.z << std::endl;
 				}
+				if (event.key.code == sf::Keyboard::Tab) fps = !fps;
 			}
 		}
 		camera.update();
 		if (screensaver != pixels) {
 			renderTexture.update(pixels);
 			screensaver = pixels;
-			std::cout << framecount*10 << "ms/frame" << std::endl;
+			if (fps) std::cout << framecount*10 << "ms/frame" << std::endl;
 			framecount = 0;
 		}
 		else framecount++;
